@@ -1,0 +1,32 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="120" height="120" rx="26" fill="url(#bg)"/>
+  <rect width="120" height="120" rx="26" fill="url(#shine)"/>
+
+  <!-- Left bracket -->
+  <path d="M28 38 L20 38 L20 82 L28 82" stroke="white" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+
+  <!-- Right bracket -->
+  <path d="M92 38 L100 38 L100 82 L92 82" stroke="white" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+
+  <!-- SQL lines (formatted code representation) -->
+  <!-- Line 1: keyword (short, blue-ish white) -->
+  <rect x="36" y="44" width="22" height="5" rx="2.5" fill="white" opacity="0.95"/>
+  <!-- Line 2: indent + content -->
+  <rect x="44" y="54" width="36" height="5" rx="2.5" fill="white" opacity="0.65"/>
+  <!-- Line 3: keyword -->
+  <rect x="36" y="64" width="16" height="5" rx="2.5" fill="white" opacity="0.95"/>
+  <!-- Line 4: indent + content -->
+  <rect x="44" y="74" width="28" height="5" rx="2.5" fill="white" opacity="0.65"/>
+</svg>

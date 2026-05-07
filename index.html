@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SQL Formation System</title>
   <meta name="description" content="Java/Spring ログから SQL を抽出・パラメータ置換・整形して表示するツール">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
 
   <!-- OGP (Facebook / Instagram / TikTok) -->
   <meta property="og:type"        content="website">
@@ -74,12 +75,11 @@
     }
     .h-icon {
       width: 34px; height: 34px;
-      background: rgba(79,70,229,.3);
-      border: 1px solid rgba(99,102,241,.45);
-      border-radius: 7px;
-      display: flex; align-items: center; justify-content: center;
-      color: #A5B4FC; flex-shrink: 0;
+      border-radius: 8px;
+      flex-shrink: 0;
+      overflow: hidden;
     }
+    .h-icon img { width: 34px; height: 34px; display: block; }
     .h-title {
       font-size: 15px; font-weight: 700;
       letter-spacing: .05em; color: #E8EDF5;
@@ -341,11 +341,7 @@
 
 <header>
   <div class="h-icon">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <ellipse cx="12" cy="5" rx="9" ry="3"/>
-      <path d="M3 5v14a9 3 0 0 0 18 0V5"/>
-      <path d="M3 12a9 3 0 0 0 18 0"/>
-    </svg>
+    <img src="logo.svg" alt="SQL Formation System logo">
   </div>
   <div class="h-title">SQL <em>Formation</em> System</div>
   <div class="h-right">
