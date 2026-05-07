@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQL Formation System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #F0F4F9;
+      --surface:   #FFFFFF;
+      --surface2:  #F5F8FB;
+      --border:    #D4DCE8;
+      --border2:   #A8B8CC;
+      --text:      #0F1C2E;
+      --text2:     #3D5166;
+      --text3:     #5C7A96;
+      --hd-bg:     #0D1526;
+      --accent:    #4F46E5;
+      --accent-lt: #EEF2FF;
+      --accent-bd: #A5B4FC;
+      --code-bg:   #0D1829;
+      --code-text: #E4EAF4;
+      --kw:        #63B3ED;
+      --str:       #F6AD55;
+      --num:       #68D391;
+      --ok:        #15803D;
+      --ok-lt:     #F0FDF4;
+      --ok-bd:     #4ADE80;
+      --font-ui:   'Plus Jakarta Sans', sans-serif;
+      --font-code: 'Fira Code', monospace;
+      --hh:        58px;
+      --r:         8px;
+      --r2:        11px;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: var(--font-ui);
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ──────────────────────────────────────── */
+    header {
+      position: sticky; top: 0; z-index: 200;
+      height: var(--hh);
+      background: var(--hd-bg);
+      display: flex; align-items: center;
+      padding: 0 24px; gap: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .h-icon {
+      width: 34px; height: 34px;
+      background: rgba(79,70,229,.3);
+      border: 1px solid rgba(99,102,241,.45);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      color: #A5B4FC; flex-shrink: 0;
+    }
+    .h-title {
+      font-size: 15px; font-weight: 700;
+      letter-spacing: .05em; color: #E8EDF5;
+    }
+    .h-title em { font-style:normal; color:#818CF8; }
+    .h-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .h-shortcut {
+      font-size: 12px; font-family: var(--font-code);
+      color: #E8EDF5; display: flex; align-items: center; gap: 5px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .h-shortcut kbd {
+      background: #1E2D42; border: 1px solid #3D5572;
+      border-radius: 5px; padding: 3px 7px;
+      font-family: var(--font-code); font-size: 11px; color: #E8EDF5;
+      display: inline-block; line-height: 1.4;
+    }
+    .h-badge {
+      font-size: 11px; font-family: var(--font-code);
+      color: #E8EDF5; background: #1E2D42;
+      border: 1px solid #3D5572; padding: 3px 9px; border-radius: 5px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* ── MAIN LAYOUT（スクロール型） ──────────────────── */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+
+    /* ── PANELS ──────────────────────────────────────── */
+    .panel {
+      display: flex; flex-direction: column;
+      padding: 24px;
+    }
+    .panel-left {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: var(--hh);
+      height: calc(100vh - var(--hh));
+      overflow-y: auto;
+    }
+    .panel-right {
+      background: var(--bg);
+      min-height: calc(100vh - var(--hh));
+      padding-bottom: 40px;
+    }
+
+    .panel-head {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 16px; flex-shrink: 0; flex-wrap: wrap;
+    }
+    .p-label {
+      font-size: 12px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--text3);
+    }
+    .p-count {
+      margin-left: auto; font-family: var(--font-code);
+      font-size: 13px; color: var(--text3); transition: color .2s;
+    }
+    .p-count.on { color: var(--accent); font-weight: 600; }
+
+    /* ── TEXTAREA ────────────────────────────────────── */
+    .ta-wrap { flex: 1; min-height: 0; }
+    .log-ta {
+      width: 100%; height: 100%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r2);
+      color: var(--text); font-family: var(--font-code);
+      font-size: 13.5px; line-height: 1.7;
+      padding: 16px; resize: none; outline: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .log-ta::placeholder { color: var(--text3); line-height: 1.85; font-size: 13px; }
+    .log-ta:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+    }
+
+    /* ── CONTROLS ────────────────────────────────────── */
+    .ctrls {
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0; flex-wrap: wrap;
+    }
+    .btn-parse {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--r); font-family: var(--font-ui);
+      font-size: 15px; font-weight: 600;
+      padding: 10px 26px; cursor: pointer; letter-spacing: .02em;
+      transition: background .15s, transform .1s, box-shadow .15s;
+      box-shadow: 0 2px 8px rgba(79,70,229,.35);
+    }
+    .btn-parse:hover { background:#4338CA; box-shadow: 0 4px 14px rgba(79,70,229,.45); }
+    .btn-parse:active { transform: scale(.97); }
+
+    .btn-clear {
+      background: transparent; color: var(--text2);
+      border: 1.5px solid var(--border2); border-radius: var(--r);
+      font-family: var(--font-ui); font-size: 14px; font-weight: 500;
+      padding: 9px 18px; cursor: pointer; transition: all .15s;
+    }
+    .btn-clear:hover {
+      background: var(--surface2); border-color: var(--accent); color: var(--text);
+    }
+
+    .dl-group {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--accent-lt);
+      border: 1.5px solid var(--accent-bd); border-radius: var(--r);
+      padding: 6px 13px;
+    }
+    .btn-dl {
+      background: transparent; border: none;
+      color: var(--accent); font-family: var(--font-ui);
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      padding: 0 4px; transition: color .15s;
+    }
+    .btn-dl:hover { color: #4338CA; text-decoration: underline; }
+
+    /* ── SQL LIST ────────────────────────────────────── */
+    .sql-list { display: flex; flex-direction: column; gap: 18px; }
+
+    /* ── EMPTY ───────────────────────────────────────── */
+    .empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 280px; gap: 14px;
+      text-align: center; padding: 32px;
+    }
+    .empty-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: var(--surface); border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text3);
+    }
+    .empty-title { font-size: 16px; font-weight: 600; color: var(--text2); }
+    .empty-sub { font-size: 14px; max-width: 240px; line-height: 1.75; color: var(--text3); }
+
+    /* ── SQL CARD ────────────────────────────────────── */
+    .sql-card {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--r2); overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,.07);
+      animation: cardIn .2s ease both;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .sql-card:hover {
+      border-color: var(--accent-bd);
+      box-shadow: 0 6px 18px rgba(79,70,229,.12);
+    }
+    @keyframes cardIn {
+      from { opacity:0; transform:translateY(8px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .card-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 16px;
+      background: var(--surface2); border-bottom: 1.5px solid var(--border);
+    }
+    .sql-badge {
+      font-family: var(--font-code); font-size: 12px; font-weight: 700;
+      color: var(--accent); background: var(--accent-lt);
+      border: 1px solid var(--accent-bd);
+      padding: 3px 10px; border-radius: 5px; letter-spacing: .04em;
+    }
+    .sql-meta {
+      font-family: var(--font-code); font-size: 12px;
+      color: var(--text3); flex: 1;
+    }
+    .btn-copy {
+      background: transparent; border: 1.5px solid var(--border2);
+      color: var(--text2); border-radius: 6px;
+      font-family: var(--font-ui); font-size: 12.5px; font-weight: 500;
+      padding: 5px 12px; cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
+      transition: all .15s; white-space: nowrap;
+    }
+    .btn-copy:hover {
+      background: var(--accent-lt); border-color: var(--accent-bd); color: var(--accent);
+    }
+    .btn-copy.ok {
+      border-color: var(--ok-bd); color: var(--ok); background: var(--ok-lt);
+    }
+
+    /* Dark code area */
+    .sql-body {
+      padding: 18px 20px; background: var(--code-bg);
+      font-family: var(--font-code); font-size: 14.5px;
+      line-height: 1.85; overflow-x: auto; white-space: pre;
+      color: var(--code-text);
+    }
+    .kw  { color: var(--kw);  font-weight: 500; }
+    .str { color: var(--str); }
+    .num { color: var(--num); }
+
+    /* ── 選択ヒントバー ──────────────────────────────────── */
+    .sel-hint {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px; flex-shrink: 0; font-size: 13px;
+    }
+    .sel-hint-label { color: var(--text3); white-space: nowrap; }
+    .sel-hint-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--accent-lt); color: var(--accent);
+      border: 1.5px solid var(--accent-bd); border-radius: 6px;
+      padding: 3px 13px; font-family: var(--font-code);
+      font-size: 13px; font-weight: 700;
+      text-decoration: none; transition: background .15s, color .15s;
+    }
+    .sel-hint-badge:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* カードジャンプ時の一時ハイライト */
+    .sql-card.flash {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 4px rgba(79,70,229,.2) !important;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+    /* ── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 860px) {
+      main {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+      .panel-left {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 2px solid var(--border);
+        overflow-y: visible;
+      }
+      .ta-wrap { flex: unset; }
+      .log-ta  { height: 220px; min-height: 140px; resize: vertical; }
+      .panel-right { min-height: unset; }
+      .h-shortcut  { display: none; }
+    }
+    @media (max-width: 500px) {
+      header { padding: 0 16px; }
+      .panel { padding: 16px; }
+      .h-badge { display: none; }
+      .h-title { font-size: 13.5px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="h-icon">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <ellipse cx="12" cy="5" rx="9" ry="3"/>
+      <path d="M3 5v14a9 3 0 0 0 18 0V5"/>
+      <path d="M3 12a9 3 0 0 0 18 0"/>
+    </svg>
+  </div>
+  <div class="h-title">SQL <em>Formation</em> System</div>
+  <div class="h-right">
+    <span class="h-shortcut"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> 解析</span>
+    <span class="h-badge">v1.0</span>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: input -->
+  <div class="panel panel-left">
+    <div class="panel-head">
+      <div class="p-label">ログ貼り付け</div>
+      <div class="ctrls" style="margin:0; flex-shrink:0;">
+        <button class="btn-parse" onclick="runParse()">解析する</button>
+        <button class="btn-clear" onclick="clearAll()">クリア</button>
+        <span class="p-count" id="cntL"></span>
+      </div>
+    </div>
+    <div id="selHint" class="sel-hint" style="display:none">
+      <span class="sel-hint-label">選択中:</span>
+      <a id="selHintLink" class="sel-hint-badge" href="#" onclick="jumpToSQL(event)"></a>
+    </div>
+    <div class="ta-wrap">
+      <textarea id="logInput" class="log-ta" spellcheck="false"
+        placeholder="ログまたはSQLをここに貼り付けてください
+
+--- ログ形式（単一パラメータ）---
+2024-06-01 10:00:00,000 http-nio-8080-exec-1 [INFO] service.UserService - SELECT ID, NAME FROM USERS WHERE ID = ?
+> param:[1-42]
+
+--- ログ形式（複数パラメータ）---
+2024-06-01 10:00:01,000 http-nio-8080-exec-2 [INFO] service.OrderService - SELECT * FROM ORDERS WHERE STATUS = ? AND CUSTOMER_ID = ?
+> param:[1-SHIPPED][2-1001]
+
+--- Raw SQL ---
+SELECT ID, NAME, EMAIL FROM USERS WHERE DEPT_ID = 10 ORDER BY NAME;"></textarea>
+    </div>
+  </div>
+
+  <!-- RIGHT: output -->
+  <div class="panel panel-right">
+    <div class="panel-head">
+      <span class="p-count" id="cntR"></span>
+      <div class="dl-group" id="dlGroup" style="display:none">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <button class="btn-dl" onclick="downloadSQL('sql')">.sql</button>
+        <span style="color:var(--border2);font-size:11px">|</span>
+        <button class="btn-dl" onclick="downloadSQL('txt')">.txt</button>
+      </div>
+    </div>
+    <div class="sql-list" id="sqlList">
+      <div class="empty">
+        <div class="empty-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M3 5v14a9 3 0 0 0 18 0V5"/>
+            <path d="M3 12a9 3 0 0 0 18 0"/>
+          </svg>
+        </div>
+        <div class="empty-sub">ログまたはSQLを左に貼り付けて<br>「解析する」をクリック</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ─── キーワード一覧 ─────────────────────────────────────── */
+const KW_LIST = [
+  'SELECT','DISTINCT','FROM','WHERE','AND','OR','NOT','IN','EXISTS',
+  'BETWEEN','LIKE','IS','NULL','AS','ON','SET','INTO',
+  'INSERT','UPDATE','DELETE','MERGE','CALL','CREATE','DROP','TRUNCATE',
+  'TABLE','VIEW','INDEX','COLUMN','ALTER','ADD',
+  'ORDER','BY','GROUP','HAVING','LIMIT','OFFSET',
+  'JOIN','INNER','LEFT','RIGHT','FULL','OUTER','CROSS',
+  'UNION','ALL','INTERSECT','EXCEPT',
+  'VALUES','ASC','DESC','TOP','ROWNUM','FETCH','NEXT','ROWS','ONLY',
+  'WITH','CASE','WHEN','THEN','ELSE','END',
+];
+const KW_RE = new RegExp(`^(${KW_LIST.join('|')})(?=[\\s,()=<>!\\n]|$)`, 'i');
+
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const isNumeric = v => /^\s*-?\d+(\.\d+)?\s*$/.test(v);
+
+/* ─── param行パース: >[1-val1][2-val2]... ──────────────── */
+function parseParamLine(line) {
+  const m = line.match(/^>\s*param:(.+)$/);
+  if (!m) return null;
+  const hits = [...m[1].matchAll(/\[(\d+)-([^\]]+)\]/g)];
+  if (!hits.length) return null;
+  return hits
+    .sort((a, b) => +a[1] - +b[1])
+    .map(h => h[2]);
+}
+
+/* ─── パラメータ代入 ────────────────────────────────────── */
+function substituteParams(sql, params) {
+  let i = 0;
+  return sql.replace(/\?/g, () => {
+    if (i >= params.length) return '?';
+    const v = params[i++].trim();
+    return isNumeric(v) ? v : `'${v}'`;
+  });
+}
+
+/* ─── カンマ分割（括弧・文字列リテラルを保護） ──────────── */
+function splitByComma(str) {
+  const parts = [];
+  let cur = '', depth = 0, i = 0;
+  while (i < str.length) {
+    const ch = str[i];
+    if (ch === '(') { depth++; cur += ch; i++; }
+    else if (ch === ')') { depth--; cur += ch; i++; }
+    else if (ch === "'") {
+      cur += ch; i++;
+      while (i < str.length) {
+        if (str[i] === "'" && str[i+1] === "'") { cur += "''"; i += 2; }
+        else if (str[i] === "'") { cur += str[i++]; break; }
+        else cur += str[i++];
+      }
+    } else if (ch === ',' && depth === 0) {
+      parts.push(cur.trim()); cur = ''; i++;
+    } else { cur += ch; i++; }
+  }
+  if (cur.trim()) parts.push(cur.trim());
+  return parts;
+}
+
+/* ─── CREATE TABLE 専用整形 ─────────────────────────────── */
+function formatCreateTable(sql) {
+  // CREATE TABLE name (...) の ( ) を分離
+  const m = sql.match(/^(CREATE\s+TABLE\s+\S+)\s*\((.+)\)\s*$/is);
+  if (!m) return sql;
+  const cols = splitByComma(m[2]).map(c => '  ' + c.trim()).join(',\n');
+  return `${m[1].trim()} (\n${cols}\n)`;
+}
+
+/* ─── SET / VALUES 等のカンマ項目を複数行に展開 ─────────── */
+function expandCommaLines(sql) {
+  return sql.split('\n').map(line => {
+    // SET または VALUES で始まる行のカンマ区切りを展開
+    const m = line.match(/^((?:SET|VALUES)\s+)([\s\S]+)$/i);
+    if (!m) return line;
+    const parts = splitByComma(m[2]);
+    if (parts.length <= 1) return line;
+    const pad = ' '.repeat(m[1].length);
+    return (
+      m[1] + parts[0].trim() + ',\n' +
+      parts.slice(1, -1).map(p => pad + p.trim() + ',\n').join('') +
+      pad + parts[parts.length - 1].trim()
+    );
+  }).join('\n');
+}
+
+/* ─── 行ごと構造化インデント ─────────────────────────────── */
+function postFormatLines(sql) {
+  const lines = sql.split('\n').filter(l => l.trim());
+  const out = [];
+  for (const raw of lines) {
+    const t = raw.trim();
+    if (/^SELECT(\s|$)/i.test(t)) {
+      const rest = t.replace(/^SELECT\s*/i, '');
+      out.push('SELECT');
+      if (rest) {
+        const cols = splitByComma(rest);
+        cols.forEach((c, i) => out.push('    ' + c.trim() + (i < cols.length - 1 ? ',' : '')));
+      }
+    }
+    else if (/^FROM(\s|$)/i.test(t)) {
+      const rest = t.replace(/^FROM\s*/i, '').trim();
+      out.push('FROM');
+      if (rest) out.push('    ' + rest);
+    }
+    else if (/^(INNER\s+JOIN|LEFT\s+OUTER\s+JOIN|RIGHT\s+OUTER\s+JOIN|FULL\s+OUTER\s+JOIN|LEFT\s+JOIN|RIGHT\s+JOIN|CROSS\s+JOIN|JOIN)\b/i.test(t)) {
+      const m = t.match(/^((?:(?:INNER|LEFT\s+OUTER|RIGHT\s+OUTER|FULL\s+OUTER|LEFT|RIGHT|CROSS)\s+)?JOIN)\s*(.*)/i);
+      if (m) {
+        const joinType = m[1].replace(/\s+/g, ' ').toUpperCase();
+        const table = m[2].trim();
+        out.push(joinType + (table ? ' ' + table : ''));
+      }
+    }
+    else if (/^ON\b/i.test(t)) {
+      out.push('    ON  ' + t.replace(/^ON\s*/i, '').trim());
+    }
+    else if (/^WHERE(\s|$)/i.test(t)) {
+      const rest = t.replace(/^WHERE\s*/i, '').trim();
+      out.push('WHERE');
+      if (rest) out.push('    ' + rest);
+    }
+    else if (/^AND\b/i.test(t)) {
+      out.push('    AND ' + t.replace(/^AND\s*/i, '').trim());
+    }
+    else if (/^OR\b/i.test(t)) {
+      out.push('    OR  ' + t.replace(/^OR\s*/i, '').trim());
+    }
+    else if (/^ORDER\s+BY(\s|$)/i.test(t)) {
+      const rest = t.replace(/^ORDER\s+BY\s*/i, '').trim();
+      out.push('ORDER BY');
+      if (rest) splitByComma(rest).forEach((c, i, a) =>
+        out.push('    ' + c.trim() + (i < a.length - 1 ? ',' : '')));
+    }
+    else if (/^GROUP\s+BY(\s|$)/i.test(t)) {
+      const rest = t.replace(/^GROUP\s+BY\s*/i, '').trim();
+      out.push('GROUP BY');
+      if (rest) splitByComma(rest).forEach((c, i, a) =>
+        out.push('    ' + c.trim() + (i < a.length - 1 ? ',' : '')));
+    }
+    else if (/^HAVING(\s|$)/i.test(t)) {
+      const rest = t.replace(/^HAVING\s*/i, '').trim();
+      out.push('HAVING');
+      if (rest) out.push('    ' + rest);
+    }
+    else if (/^SET(\s|$)/i.test(t)) {
+      const rest = t.replace(/^SET\s*/i, '').trim();
+      out.push('SET');
+      if (rest) splitByComma(rest).forEach((c, i, a) =>
+        out.push('    ' + c.trim() + (i < a.length - 1 ? ',' : '')));
+    }
+    else if (/^VALUES(\s|$)/i.test(t)) {
+      const rest = t.replace(/^VALUES\s*/i, '').trim();
+      out.push('VALUES');
+      if (rest) out.push('    ' + rest);
+    }
+    else if (/^UPDATE(\s|$)/i.test(t)) {
+      const rest = t.replace(/^UPDATE\s*/i, '').trim();
+      out.push('UPDATE');
+      if (rest) out.push('    ' + rest);
+    }
+    else if (/^UNION(\s+ALL)?(\s|$)/i.test(t)) {
+      out.push(t.toUpperCase());
+    }
+    else {
+      out.push(raw);
+    }
+  }
+  return out.join('\n');
+}
+
+/* ─── SQL整形 ───────────────────────────────────────────── */
+function formatSQL(sql) {
+  if (/^CREATE\s+TABLE\b/i.test(sql.trim())) return formatCreateTable(sql.trim());
+  // 文字列リテラルをトークン分割（キーワード置換から保護）
+  const tokens = [];
+  let buf = '', j = 0;
+  while (j < sql.length) {
+    if (sql[j] === "'") {
+      if (buf) { tokens.push({ t:'code', v:buf }); buf = ''; }
+      let s = "'"; j++;
+      while (j < sql.length) {
+        if (sql[j] === "'" && sql[j+1] === "'") { s += "''"; j += 2; }
+        else if (sql[j] === "'") { s += "'"; j++; break; }
+        else s += sql[j++];
+      }
+      tokens.push({ t:'str', v:s });
+    } else buf += sql[j++];
+  }
+  if (buf) tokens.push({ t:'code', v:buf });
+
+  // 単一パスで全キーワードを一致（具体的なものを先に並べてINNER JOINのJOINが単独マッチしないようにする）
+  const KW_RE = /\s+(INNER\s+JOIN|LEFT\s+OUTER\s+JOIN|RIGHT\s+OUTER\s+JOIN|FULL\s+OUTER\s+JOIN|LEFT\s+JOIN|RIGHT\s+JOIN|CROSS\s+JOIN|ORDER\s+BY|GROUP\s+BY|UNION\s+ALL|UNION|FROM|WHERE|HAVING|JOIN|SET|VALUES|ON)\b/gi;
+
+  const assembled = tokens.map(tok => {
+    if (tok.t === 'str') return tok.v;
+    let c = tok.v;
+    c = c.replace(KW_RE, (_, kw) => '\n' + kw.replace(/\s+/g, ' ').toUpperCase());
+    c = c.replace(/\s+\bAND\b/gi, '\nAND');
+    c = c.replace(/\s+\bOR\b/gi,  '\nOR');
+    c = c.replace(/[ \t]{2,}/g, ' ');
+    return c;
+  }).join('').trim();
+
+  return postFormatLines(assembled);
+}
+
+/* ─── シンタックスハイライト ────────────────────────────── */
+function highlightSQL(sql) {
+  const out = [];
+  let i = 0;
+  while (i < sql.length) {
+    const ch = sql[i];
+    if (ch === '\n') { out.push('\n'); i++; continue; }
+    if (ch === ' ')  { out.push(' ');  i++; continue; }
+    if (ch === "'") {
+      let s = "'"; i++;
+      while (i < sql.length) {
+        if (sql[i] === "'" && sql[i+1] === "'") { s += "''"; i += 2; }
+        else if (sql[i] === "'") { s += "'"; i++; break; }
+        else s += sql[i++];
+      }
+      out.push(`<span class="str">${esc(s)}</span>`); continue;
+    }
+    if (/\d/.test(ch)) {
+      const m = sql.slice(i).match(/^(\d+(?:\.\d+)?)/);
+      if (m) { out.push(`<span class="num">${esc(m[1])}</span>`); i += m[1].length; continue; }
+    }
+    if (/[a-zA-Z_]/.test(ch)) {
+      const m = sql.slice(i).match(KW_RE);
+      if (m) { out.push(`<span class="kw">${esc(m[1].toUpperCase())}</span>`); i += m[1].length; continue; }
+      const id = sql.slice(i).match(/^[a-zA-Z_][a-zA-Z0-9_.#$]*/);
+      if (id) { out.push(esc(id[0])); i += id[0].length; continue; }
+    }
+    out.push(esc(ch)); i++;
+  }
+  return out.join('');
+}
+
+/* ─── セミコロンで文を分割（文字オフセット付き） ────────── */
+function splitByStatements(sql) {
+  const stmts = [];
+  let cur = '', i = 0, start = 0;
+  while (i < sql.length) {
+    if (sql[i] === "'") {
+      cur += sql[i++];
+      while (i < sql.length) {
+        if (sql[i] === "'" && sql[i+1] === "'") { cur += "''"; i += 2; }
+        else if (sql[i] === "'") { cur += sql[i++]; break; }
+        else cur += sql[i++];
+      }
+    } else if (sql[i] === ';') {
+      const t = cur.replace(/\s+/g, ' ').trim();
+      if (t) stmts.push({ text: t, charStart: start, charEnd: i });
+      cur = ''; start = i + 1; i++;
+    } else cur += sql[i++];
+  }
+  const t = cur.replace(/\s+/g, ' ').trim();
+  if (t) stmts.push({ text: t, charStart: start, charEnd: sql.length });
+  return stmts;
+}
+
+/* ─── 解析メイン ────────────────────────────────────────── */
+function runParse() {
+  const text  = document.getElementById('logInput').value;
+  const lines = text.split('\n');
+  const items = [];
+
+  /* Mode 1: ログ形式 (... - SELECT ...) */
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/ - ((?:SELECT|INSERT(?:\s+INTO)?|UPDATE|DELETE(?:\s+FROM)?|MERGE|CALL|CREATE|DROP|TRUNCATE)\b.+)$/i);
+    if (!m) continue;
+    let rawSQL = m[1].trim();
+    let params = [];
+    const lineStart = i;
+    if (i + 1 < lines.length) {
+      const p = parseParamLine(lines[i + 1]);
+      if (p) { params = p; i++; }
+    }
+    items.push({
+      sql: formatSQL(substituteParams(rawSQL, params)),
+      paramCnt: params.length,
+      srcLineStart: lineStart,
+      srcLineEnd: i,
+    });
+  }
+
+  /* Mode 2: Raw SQL フォールバック（ログ形式が1件もない場合） */
+  if (items.length === 0) {
+    const SQL_START = /^(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|TRUNCATE|MERGE)\b/i;
+    splitByStatements(text).forEach(stmt => {
+      if (!SQL_START.test(stmt.text)) return;
+      const toLine = offset => text.substring(0, offset).split('\n').length - 1;
+      items.push({
+        sql: formatSQL(stmt.text),
+        paramCnt: 0,
+        srcLineStart: toLine(stmt.charStart),
+        srcLineEnd:   toLine(stmt.charEnd),
+      });
+    });
+  }
+
+  window._items = items;
+  render(items);
+}
+
+/* ─── 描画 ──────────────────────────────────────────────── */
+window._sqls = [];
+
+function setCount(n) {
+  const txt = n > 0 ? `${n} 件` : '';
+  const cls = n > 0 ? 'p-count on' : 'p-count';
+  ['cntL','cntR'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = txt; el.className = cls; }
+  });
+  const dl = document.getElementById('dlGroup');
+  if (dl) dl.style.display = n > 0 ? 'flex' : 'none';
+}
+
+function emptyHTML(icon, title, sub) {
+  return `<div class="empty">
+    <div class="empty-icon">${icon}</div>
+    ${title ? `<div class="empty-title">${title}</div>` : ''}
+    <div class="empty-sub">${sub}</div>
+  </div>`;
+}
+
+const ICON_DB = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>`;
+const ICON_WARN = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+
+function render(items) {
+  window._sqls = items.map(x => x.sql);
+  const list = document.getElementById('sqlList');
+  list.innerHTML = '';
+
+  if (!items.length) {
+    setCount(0);
+    list.innerHTML = emptyHTML(ICON_WARN, 'SQLが見つかりませんでした',
+      'ログにSELECT / INSERT / UPDATE 等が含まれているか確認してください');
+    return;
+  }
+
+  setCount(items.length);
+  items.forEach((item, idx) => {
+    const meta = item.paramCnt > 0
+      ? `${item.paramCnt} パラメータ置換済み`
+      : 'パラメータなし';
+    const card = document.createElement('div');
+    card.className = 'sql-card';
+    card.id = `sql-card-${idx + 1}`;
+    card.style.animationDelay = `${idx * 50}ms`;
+    card.innerHTML = `
+      <div class="card-head">
+        <span class="sql-badge">SQL&nbsp;#${idx + 1}</span>
+        <span class="sql-meta">${esc(meta)}</span>
+        <button class="btn-copy" data-idx="${idx}" onclick="copySQL(this)">
+          ${ICON_COPY} コピー
+        </button>
+      </div>
+      <div class="sql-body">${highlightSQL(item.sql)}</div>`;
+    list.appendChild(card);
+  });
+}
+
+const ICON_COPY = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+const ICON_CHECK = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+function copySQL(btn) {
+  const idx = +btn.dataset.idx;
+  navigator.clipboard.writeText(window._sqls[idx]).then(() => {
+    btn.classList.add('ok');
+    btn.innerHTML = `${ICON_CHECK} コピー済み`;
+    setTimeout(() => {
+      btn.classList.remove('ok');
+      btn.innerHTML = `${ICON_COPY} コピー`;
+    }, 2000);
+  });
+}
+
+/* ─── ダウンロード ──────────────────────────────────────── */
+function downloadSQL(ext) {
+  if (!window._sqls || !window._sqls.length) return;
+  const sep = '\n\n/* ────────────────────────── */\n\n';
+  const content = window._sqls.join(sep);
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `formatted_sql.${ext}`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function clearAll() {
+  document.getElementById('logInput').value = '';
+  setCount(0);
+  document.getElementById('sqlList').innerHTML =
+    emptyHTML(ICON_DB, '', 'ログまたはSQLを左に貼り付けて「解析する」をクリック');
+  window._sqls  = [];
+  window._items = [];
+  hideSelHint();
+}
+
+/* ─── 選択検知・ヒント表示 ──────────────────────────────── */
+function onTextareaSelect() {
+  const ta = document.getElementById('logInput');
+  const { selectionStart, selectionEnd, value } = ta;
+  if (selectionStart === selectionEnd || !window._items?.length) {
+    hideSelHint(); return;
+  }
+  const line = value.substring(0, selectionStart).split('\n').length - 1;
+  const idx = window._items.findIndex(
+    it => line >= it.srcLineStart && line <= it.srcLineEnd
+  );
+  if (idx >= 0) showSelHint(idx + 1);
+  else hideSelHint();
+}
+
+function showSelHint(n) {
+  const link = document.getElementById('selHintLink');
+  link.textContent = `SQL #${n}  →`;
+  link.dataset.num = n;
+  document.getElementById('selHint').style.display = 'flex';
+}
+
+function hideSelHint() {
+  document.getElementById('selHint').style.display = 'none';
+}
+
+function jumpToSQL(e) {
+  e.preventDefault();
+  const card = document.getElementById(`sql-card-${e.currentTarget.dataset.num}`);
+  if (!card) return;
+  const headerH = document.querySelector('header')?.offsetHeight ?? 58;
+  const top = card.getBoundingClientRect().top + window.scrollY - headerH - 16;
+  window.scrollTo({ top, behavior: 'smooth' });
+  card.classList.add('flash');
+  setTimeout(() => card.classList.remove('flash'), 1200);
+}
+
+/* ─── イベントリスナー ──────────────────────────────────── */
+const _ta = document.getElementById('logInput');
+_ta.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); runParse(); }
+});
+_ta.addEventListener('mouseup', onTextareaSelect);
+_ta.addEventListener('keyup',   onTextareaSelect);
+</script>
+</body>
+</html>
