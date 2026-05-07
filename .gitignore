@@ -1,0 +1,5 @@
+.vercel
+node_modules
+gen-ogp.js
+package.json
+package-lock.json
